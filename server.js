@@ -29,10 +29,9 @@ const io = new Server(expServer, {
 })
 
 io.on("connection", socket => {
-    const IP = socket.request.connection.remoteAddress
     
     socket.on("join", () => {
-        
+        let IP = socket.handshake.headers['x-real-ip'] || socket.handshake.headers['x-forwarded-for'] || socket.handshake.address
         users.push(socket.id)
         console.log(`Connection: ${users.length} users [${IP}]`)
         console.log(users)
