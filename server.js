@@ -28,8 +28,9 @@ const io = new Server(expServer, {
 io.on("connection", socket => {
 
     socket.on("join", () => {
+        const IP = socket.handshake.address;
         users.push(socket.id)
-        console.log(`Connection: ${users.length} users`)
+        console.log(`Connection: ${users.length} users [${IP}]`)
         console.log(users)
         io.emit("join", users)
     })
