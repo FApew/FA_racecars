@@ -1,8 +1,8 @@
 //### Coded by FA_pew ###
 
 //Server
-//const socket = new io("https://fa-racecars.onrender.com/")
-const socket = new io("http://localhost:3500/")
+const socket = new io("https://fa-racecars.onrender.com/")
+//const socket = new io("http://localhost:3500/")
 
 //Dependencies
 import * as THREE from "three"
