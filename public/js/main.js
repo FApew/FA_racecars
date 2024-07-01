@@ -1,7 +1,8 @@
 //### Coded by FA_pew ###
 //Server
-const socket = new io("https://fa-racecars.onrender.com/")
-//const socket = new io("http://localhost:3500/")
+//const socket = new io("https://fa-racecars.onrender.com/")
+const socket = new io("http://localhost:3500/")
+
 
 //Dependencies
 import * as THREE from "three"
@@ -40,7 +41,7 @@ if (WebGL.isWebGLAvailable()) {
     //Renderer
     const renderer = new THREE.WebGLRenderer()
     renderer.setSize(container.clientWidth, container.clientHeight)
-    renderer.setAnimationLoop(animate)
+    //renderer.setAnimationLoop(animate)
     container.appendChild(renderer.domElement)
 
     //Physic plane
@@ -123,27 +124,84 @@ if (WebGL.isWebGLAvailable()) {
     }
     
     //Multiplayer config
-    let playerArr = []
-    socket.on("join", (data) => {
-        users = data
+    socket.on("join", (userArr, id) => {
+        users = userArr
         if (userID == 0) {
             userID = users[users.length-1]
             idElm.innerHTML = `ID: ${userID}`
         }
+        handlePlayers()
     })
-    socket.on("leave", (data) => {
-        users = data
+    socket.on("leave", (userArr, id) => {
+        users = userArr
+        handlePlayers()
+    })
+
+    socket.on("reload", () => {
+        window.location.reload()
     })
     
-    
+    let playerGr = new THREE.Group()
+    let playerPArr = [], playerID = []
+    function handlePlayers() {
+        console.log(users)
+        let check = true
+        while (check) {
+            check = false
+            for (let i = 0; i < users.length; i++) {
+                if (playerID.indexOf(users[i]) == -1) {
+                    const pObj = new CANNON.Body({
+                        shape: new CANNON.Box(new CANNON.Vec3(.3, .1, .5)),
+                        position: new CANNON.Vec3(0, 10,0),
+                        mass: 1
+                    })
+                    pObj.id = users[i]
+                    world.addBody(pObj)
+                    playerPArr[i] = pObj
+                    playerID[i] = users[i]
+                    check = true
+                }
+            }
+            for (let i = 0; i < playerID.length; i++) {
+                if (users.indexOf(playerID[i]) == -1) {
+                    world.removeBody(playerPArr[i])
+                    playerPArr.splice(i, 1)
+                    playerID.splice(i, 1)
+                    check = true
+                }
+            }
+        }
+    }
+
+    //PlayerUpdate receiver
+    socket.on("playerUpdate", (data) => {
+        if (userID != data.id) {
+            let obj = playerPArr[playerID.indexOf(data.id)]
+            obj.position.copy(data.position)
+            obj.quaternion.copy(data.quaternion)
+        }
+    })
+
     //Animate
-    let t = Date.now(), dt
+    socket.on("animate", () => {
+        animate()
+    })
+    let t = Date.now(), dt, o = 0
     function animate() {
 
         //Physic update
         dt = Date.now() - t
         world.step(1/60, dt)
         t = Date.now()
+
+        //Player Multiplayer Update
+        //console.log(o)
+        if (users.length >= 2 && o == 10) {
+            console.log(playerPArr[playerID.indexOf(userID)], playerID, userID)
+            let obj = playerPArr[playerID.indexOf(userID)]
+            socket.emit("playerUpdate", {id: obj.id, position: obj.position, quaternion: obj.quaternion})
+            o = 0
+        }
 
         //Object Update
         for (let i = 0; i < gObjs.length; i++) {
@@ -161,9 +219,9 @@ if (WebGL.isWebGLAvailable()) {
                 console.warn(e)
             }
         }
+        o++
 
         //Updates
-        console.log(users.length)
         stats.update()
         cannonDebugger.update()
         renderer.render(scene, camera)

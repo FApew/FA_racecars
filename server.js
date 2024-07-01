@@ -28,15 +28,19 @@ const io = new Server(expServer, {
     }
 })
 
-io.on("connection", socket => {
+setInterval(animate, 50/3)
+
+function animate() {
+    io.emit("animate")
+}
+
+io.on("connection", (socket) => {
     
-    socket.on("join", () => {
-        let IP = socket.handshake.headers['x-real-ip'] || socket.handshake.headers['x-forwarded-for'] || socket.handshake.address
-        users.push(socket.id)
-        console.log(`Connection: ${users.length} users [${IP}]`)
-        console.log(users)
-        io.emit("join", users)
-    })
+    let IP = socket.handshake.headers['x-real-ip'] || socket.handshake.headers['x-forwarded-for'] || socket.handshake.address
+    users.push(socket.id)
+    console.log(`Connection: ${users.length} users [${IP}]`)
+    console.log(users)
+    io.emit("join", users, socket.id)
 
     socket.on("disconnect", () => {
         try {
@@ -46,14 +50,10 @@ io.on("connection", socket => {
         }
         console.log(`Disconnection: ${users.length} users`)
         console.log(users)
-        io.emit("leave", users)
+        io.emit("leave", users, socket.id)
+    })
+
+    socket.on("playerUpdate", (data) => {
+        io.emit("playerUpdate", data)
     })
 })
-
-function parseHeader(header) {
-    for (const directive of header.split(",")[0].split(";")) {
-      if (directive.startsWith("for=")) {
-        return directive.substring(4);
-      }
-    }
-  }
