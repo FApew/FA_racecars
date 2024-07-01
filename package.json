@@ -11,7 +11,7 @@
   "author": "FA_pew",
   "license": "ISC",
   "dependencies": {
-    "cannon": "^0.6.2",
+    "cannon-es": "^0.20.0",
     "express": "^4.19.2",
     "path": "^0.12.7",
     "socket.io": "^4.7.5",
