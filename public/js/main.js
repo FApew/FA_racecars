@@ -11,7 +11,7 @@ import Stats from "three/addons/libs/stats.module.js"
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js"
 
 //Files imports
-import { Objs } from "/public/js/objects.js"
+import { plane, dirLight, hemiLight } from "/public/js/objects.js"
 
 //Elements
 const container = document.getElementById("three")
@@ -28,9 +28,11 @@ let pi = Math.PI, userID = 0, worldBodies, bodies = new Map(), btn = {w: 0, a: 0
 if (WebGL.isWebGLAvailable()) {
     //Camera
     const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000)
-    camera.position.z = 5
-    camera.position.y = 2
+    camera.position.set(0, 10, 6)
+    camera.near = 5
+    camera.far = 500
     camera.rotation.x = -pi/4
+    camera.updateProjectionMatrix() 
 
     //Renderer
     const renderer = new THREE.WebGLRenderer()
@@ -50,6 +52,11 @@ if (WebGL.isWebGLAvailable()) {
         camera.updateProjectionMatrix()
         renderer.setSize(container.clientWidth, container.clientHeight )
     }
+
+    //Plane & Lights
+    scene.add(plane)
+    scene.add(dirLight)
+    scene.add(hemiLight)
     
     //Get userID
     socket.on("join", (data) => {
@@ -137,15 +144,15 @@ if (WebGL.isWebGLAvailable()) {
         }
         socket.emit("input", userID, btn)
     })
-    
+        
     //Update physics
-    socket.on("update", (data) => {
+    socket.on("updatePlayer", (data) => {
         //Get the data
-        worldBodies = data.bodies;
-        let IDs = data.bodies.map(body => (body.ID))
+        worldBodies = data.bodies     
+        let IDs = worldBodies.map(body => (body.ID))
         worldBodies.forEach((bData) => {
             let body = bodies.get(bData.ID)
-    
+
             // Create a body
             if (!body) {
                 body = newBody(bData)
@@ -197,11 +204,20 @@ if (WebGL.isWebGLAvailable()) {
     }
 
     //Create new Body
-    function newBody() {
-        const body = new THREE.Mesh(
-            new THREE.BoxGeometry(.5, .1, .3),
-            new THREE.MeshBasicMaterial({color: 0xffffff})
-        )
+    function newBody(data) {
+        let body
+        if (data.part) {
+            body = new THREE.Mesh(
+                new THREE.BoxGeometry(2, .85, 5.63),
+                new THREE.MeshBasicMaterial({color: 0x000000})
+            )
+        } else {
+            body = new THREE.Mesh(
+                new THREE.SphereGeometry(.36),
+                new THREE.MeshBasicMaterial({color: 0xffffff})
+            )
+        }
+        
         scene.add(body)
         return body
     }

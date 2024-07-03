@@ -58,30 +58,12 @@ io.on("connection", socket => {
     //Input change
     socket.on("input", (id, btn) => {
         let idx = users.indexOf(id)
-        if (btn.w) {
-            players[idx].W = 1
-        } else {
-            players[idx].W = 0
-        }
-        if (btn.a) {
-            players[idx].A = 1
-        } else {
-            players[idx].A = 0
-        }
-        if (btn.s) {
-            players[idx].S = 1
-        } else {
-            players[idx].S = 0
-        }
-        if (btn.d) {
-            players[idx].D = 1
-        } else {
-            players[idx].D = 0
-        }
-        if (btn.shift) {
-            players[idx].SHIFT = 1
-        } else {
-            players[idx].SHIFT = 0
+        if (idx !== -1 && players[idx]) {
+            players[idx].W = btn.w ? 1 : 0
+            players[idx].A = btn.a ? 1 : 0
+            players[idx].S = btn.s ? 1 : 0
+            players[idx].D = btn.d ? 1 : 0
+            players[idx].SHIFT = btn.shift ? 1 : 0
         }
     })
 })
@@ -95,10 +77,13 @@ const world = new CANNON.World({
 })
 let pi = Math.PI, users = [], players = []
 
+const speed = 800, steer = pi/4, damp = .8, friction = .5
+
 //Physic plane
 const cPlane = new CANNON.Body({
     type: CANNON.Body.STATIC,
     shape: new CANNON.Plane(),
+    material: new CANNON.Material({friction: 1})
 })
 cPlane.quaternion.setFromEuler(-Math.PI / 2, 0, 0)
 world.addBody(cPlane)
@@ -107,21 +92,88 @@ cPlane.id = -1
 //Create & Remove Physical players
 function playerhandler(b, id) {
     if (b) {
-        const player = new CANNON.Body({
-            shape: new CANNON.Box(new CANNON.Vec3(0.25, 0.05, 0.15)),
-            position: new CANNON.Vec3(0, 1, 0),
-            mass: 1,
+        let chassis = new CANNON.Body({
+            mass: 740,
+            position: new CANNON.Vec3(0,3,0),
+            rotation: new CANNON.Quaternion(),
         })
-        player.ID = id
+        chassis.addShape(new CANNON.Box(new CANNON.Vec3(1, .425, 2.815)), new CANNON.Vec3(0, .5, 0))
+
+        let player = new CANNON.RigidVehicle({
+            chassisBody: chassis
+        })
+
+        let wMat = new CANNON.Material("wheel")
+        wMat.friction = friction
+        let wShp = new CANNON.Sphere(.72/2)
+
+        let whl1 = new CANNON.Body({
+            mass: 14,
+            material: wMat,
+        })
+        whl1.addShape(wShp)
+        whl1.angularDamping = damp
+
+        let whl2 = new CANNON.Body({
+            mass: 14,
+            material: wMat,
+        })
+        whl2.addShape(wShp)
+        whl2.angularDamping = damp
+
+        let whl3 = new CANNON.Body({
+            mass: 12,
+            material: wMat,
+        })
+        whl3.addShape(wShp)
+        whl3.angularDamping = damp
+
+        let whl4 = new CANNON.Body({
+            mass: 12,
+            material: wMat,
+        })
+        whl4.addShape(wShp)
+        whl4.angularDamping = damp
+        
+        player.addWheel({
+            body: whl1,
+            position: new CANNON.Vec3(-.8, -.115, -2.015),
+            axis: new CANNON.Vec3(1,0,0),
+            direction: new CANNON.Vec3(0,-1,0),
+        })
+
+        player.addWheel({
+            body: whl2,
+            position: new CANNON.Vec3(.8, -.115, -2.015),
+            axis: new CANNON.Vec3(1,0,0),
+            direction: new CANNON.Vec3(0,-1,0),
+        })
+
+        player.addWheel({
+            body: whl3,
+            position: new CANNON.Vec3(.8, -.115, 1.585),
+            axis: new CANNON.Vec3(1,0,0),
+            direction: new CANNON.Vec3(0,-1,0),
+        })
+
+        player.addWheel({
+            body: whl4,
+            position: new CANNON.Vec3(-.8, -.115, 1.585),
+            axis: new CANNON.Vec3(1,0,0),
+            direction: new CANNON.Vec3(0,-1,0),
+        })
+        
+        player.chassisBody.ID = id
         player.W = 0
         player.A = 0
         player.S = 0
         player.D = 0
         players[users.indexOf(id)] = player
-        world.addBody(player)
+        player.addToWorld(world)
+        console.log(id, " added")
     } else {
         let idx = users.indexOf(id)
-        world.removeBody(players[idx])
+        players[idx].removeFromWorld(world)
         players.splice(idx, 1)
     }
 }
@@ -130,17 +182,25 @@ function playerhandler(b, id) {
 function update() {
 
     players.forEach((player) => {
+        player.setWheelForce(0, 2)
+        player.setWheelForce(0, 3)
+        player.setSteeringValue(0, 0)
+        player.setSteeringValue(0, 1)
         if (player.W) {
-            player.position.z-=.3
+            player.setWheelForce(-speed, 2)
+            player.setWheelForce(-speed, 3)
         }
         if (player.A) {
-            player.position.x-=.3
+            player.setSteeringValue(steer, 0)
+            player.setSteeringValue(steer, 1)
         }
         if (player.S) {
-            player.position.z+=.3
+            player.setWheelForce(speed, 2)
+            player.setWheelForce(speed, 3)
         }
         if (player.D) {
-            player.position.x+=.3
+            player.setSteeringValue(-steer, 0)
+            player.setSteeringValue(-steer, 1)
         }
     })
 
@@ -148,11 +208,12 @@ function update() {
 
     const worldState = {
         bodies: world.bodies.filter(e => e.id != -1).map(body => ({
-            ID: body.ID,
+            ID: body.chassisBody ? body.chassisBody.ID : body.id,
             position: body.position.toArray(),
-            quaternion: body.quaternion.toArray()
+            quaternion: body.quaternion.toArray(),
+            part: body.mass > 104 ? 1 : 0
         }))
     }
     //Emit update
-    io.emit("update", worldState)
+    io.emit("updatePlayer", worldState)
 }
