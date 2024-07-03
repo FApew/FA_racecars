@@ -164,6 +164,7 @@ function playerhandler(b, id) {
         })
         
         player.chassisBody.ID = id
+        player.chassisBody.COLOR = Math.random()
         player.W = 0
         player.A = 0
         player.S = 0
@@ -212,7 +213,7 @@ function update() {
             position: body.position.toArray(),
             quaternion: body.quaternion.toArray(),
             part: body.mass > 104 ? 1 : 0,
-            color: Math.random()
+            color: body.mass > 104 ? body.COLOR*10 : 0
         }))
     }
     //Emit update

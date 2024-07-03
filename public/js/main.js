@@ -207,9 +207,10 @@ if (WebGL.isWebGLAvailable()) {
     function newBody(data) {
         let body
         if (data.part) {
+            console.log(data.color)
             body = new THREE.Mesh(
                 new THREE.BoxGeometry(2, .85, 5.63),
-                new THREE.MeshBasicMaterial({color: new THREE.Color().setHSL(data.color, 1, .3)})
+                new THREE.MeshBasicMaterial({color: new THREE.Color().setHSL(data.color / 10, 1, .3)})
             )
         } else {
             body = new THREE.Mesh(
