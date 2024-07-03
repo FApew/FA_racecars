@@ -1,8 +1,8 @@
 //### Coded by FA_pew ###
 
 //Server
-const socket = new io("https://fa-racecars.onrender.com/")
-//const socket = new io("http://localhost:3500/")
+//const socket = new io("https://fa-racecars.onrender.com/")
+const socket = new io("http://localhost:3500/")
 
 //Dependencies
 import * as THREE from "three"
@@ -209,7 +209,7 @@ if (WebGL.isWebGLAvailable()) {
         if (data.part) {
             body = new THREE.Mesh(
                 new THREE.BoxGeometry(2, .85, 5.63),
-                new THREE.MeshBasicMaterial({color: 0x000000})
+                new THREE.MeshBasicMaterial({color: new THREE.Color().setHSL(data.color, 1, .3)})
             )
         } else {
             body = new THREE.Mesh(

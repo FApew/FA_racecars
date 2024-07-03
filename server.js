@@ -211,7 +211,8 @@ function update() {
             ID: body.chassisBody ? body.chassisBody.ID : body.id,
             position: body.position.toArray(),
             quaternion: body.quaternion.toArray(),
-            part: body.mass > 104 ? 1 : 0
+            part: body.mass > 104 ? 1 : 0,
+            color: Math.random()
         }))
     }
     //Emit update
