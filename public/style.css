@@ -52,3 +52,55 @@ body {
 #idTxt {
     color: #555;
 }
+
+#buttons {
+    position: absolute;
+    width: 50%;
+    aspect-ratio: 1;
+    bottom: 0;
+    right: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+}
+
+#W {
+    grid-row: 2;
+    grid-column: 2;
+}
+
+#A {
+    grid-row: 3;
+}
+
+#S {
+    grid-row: 3;
+}
+
+#D {
+    grid-row: 3;
+}
+
+.b {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #141414a8;
+    border-radius: 20px;
+    border: 2px #fff solid;
+    color: #fff;
+    font-size: 6vw;
+    margin: 5px;
+}
+
+@media only screen and (max-width: 767px) {
+    #buttons {
+        visibility: visible;
+    }
+}
+
+@media only screen and (min-width: 768px) {
+    #buttons {
+        visibility: hidden;
+    }
+}

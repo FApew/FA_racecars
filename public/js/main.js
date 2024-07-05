@@ -1,8 +1,8 @@
 //### Coded by FA_pew ###
 
 //Server
-const socket = new io("https://fa-racecars.onrender.com/")
-//const socket = new io("http://localhost:3500/")
+//const socket = new io("https://fa-racecars.onrender.com/")
+const socket = new io("http://localhost:3500/")
 
 //Dependencies
 import * as THREE from "three"
@@ -143,6 +143,52 @@ if (WebGL.isWebGLAvailable()) {
             }
         }
         socket.emit("input", userID, btn)
+    })
+
+    document.querySelectorAll(".b").forEach((button) => {
+        button.addEventListener("touchstart", (e) => {
+            switch ((e.target.id).toLowerCase())  {
+                case "w": {
+                    btn.w = 1
+                    break
+                }
+                case "a": {
+                    btn.a = 1
+                    break
+                }
+                case "s": {
+                    btn.s = 1
+                    break
+                }
+                case "d": {
+                    btn.d = 1
+                    break
+                }
+            }
+        })
+    })
+
+    document.querySelectorAll(".b").forEach((button) => {
+        button.addEventListener("touchend", (e) => {
+            switch ((e.target.id).toLowerCase())  {
+                case "w": {
+                    btn.w = 0
+                    break
+                }
+                case "a": {
+                    btn.a = 0
+                    break
+                }
+                case "s": {
+                    btn.s = 0
+                    break
+                }
+                case "d": {
+                    btn.d = 0
+                    break
+                }
+            }
+        })
     })
         
     //Update physics
