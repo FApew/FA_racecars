@@ -146,7 +146,7 @@ if (WebGL.isWebGLAvailable()) {
     })
 
     document.querySelectorAll(".b").forEach((button) => {
-        button.addEventListener("mousedown", (e) => {
+        button.addEventListener("touchstart", (e) => {
             e.preventDefault()
             switch ((e.target.id).toLowerCase())  {
                 case "w": {
