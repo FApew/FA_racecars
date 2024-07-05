@@ -209,7 +209,7 @@ function update() {
 
     const worldState = {
         bodies: world.bodies.filter(e => e.id != -1).map(body => ({
-            ID: body.chassisBody ? body.chassisBody.ID : body.id,
+            ID: body.mass > 104 ? body.ID : body.id,
             position: body.position.toArray(),
             quaternion: body.quaternion.toArray(),
             part: body.mass > 104 ? 1 : 0,

@@ -1,4 +1,4 @@
-//### Coded by FA_pew ###
+//###  Coded by FA_pew ###
 
 //Server
 const socket = new io("https://fa-racecars.onrender.com/")
@@ -198,14 +198,14 @@ if (WebGL.isWebGLAvailable()) {
     //Update physics
     socket.on("updatePlayer", (data) => {
         //Get the data
-        worldBodies = data.bodies     
+        worldBodies = data.bodies
         let IDs = worldBodies.map(body => (body.ID))
         worldBodies.forEach((bData) => {
             let body = bodies.get(bData.ID)
-
             // Create a body
             if (!body) {
                 body = newBody(bData)
+                body.ID = bData.ID
                 bodies.set(bData.ID, body)
             }
         })
@@ -244,6 +244,11 @@ if (WebGL.isWebGLAvailable()) {
         let dt = clock.getDelta()
 
         bodies.forEach((body) => {
+            if (body.ID == userID) {
+                
+                camera.position.lerp(new THREE.Vector3(body.tPos.x, body.tPos.y+10, body.tPos.z+6), dt * 10)
+            }
+
             body.position.lerp(body.tPos, dt * 10)
             body.quaternion.slerp(body.tQuat, dt * 10)
         })
@@ -257,7 +262,6 @@ if (WebGL.isWebGLAvailable()) {
     function newBody(data) {
         let body
         if (data.part) {
-            console.log(data.color)
             body = new THREE.Mesh(
                 new THREE.BoxGeometry(2, .85, 5.63),
                 new THREE.MeshBasicMaterial({color: new THREE.Color().setHSL(data.color / 10, 1, .3)})
