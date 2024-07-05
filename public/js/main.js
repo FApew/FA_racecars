@@ -1,8 +1,8 @@
 //### Coded by FA_pew ###
 
 //Server
-const socket = new io("https://fa-racecars.onrender.com/")
-//const socket = new io("http://localhost:3500/")
+//const socket = new io("https://fa-racecars.onrender.com/")
+const socket = new io("http://localhost:3500/")
 
 //Dependencies
 import * as THREE from "three"
@@ -146,7 +146,7 @@ if (WebGL.isWebGLAvailable()) {
     })
 
     document.querySelectorAll(".b").forEach((button) => {
-        button.addEventListener("touchstart", (e) => {
+        button.addEventListener("mousedown", (e) => {
             e.preventDefault()
             switch ((e.target.id).toLowerCase())  {
                 case "w": {
@@ -166,6 +166,7 @@ if (WebGL.isWebGLAvailable()) {
                     break
                 }
             }
+            socket.emit("input", userID, btn)
         })
     })
 
@@ -190,6 +191,7 @@ if (WebGL.isWebGLAvailable()) {
                     break
                 }
             }
+            socket.emit("input", userID, btn)
         })
     })
         
