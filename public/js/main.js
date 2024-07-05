@@ -147,6 +147,7 @@ if (WebGL.isWebGLAvailable()) {
 
     document.querySelectorAll(".b").forEach((button) => {
         button.addEventListener("touchstart", (e) => {
+            e.preventDefault()
             switch ((e.target.id).toLowerCase())  {
                 case "w": {
                     btn.w = 1
@@ -170,6 +171,7 @@ if (WebGL.isWebGLAvailable()) {
 
     document.querySelectorAll(".b").forEach((button) => {
         button.addEventListener("touchend", (e) => {
+            e.preventDefault()
             switch ((e.target.id).toLowerCase())  {
                 case "w": {
                     btn.w = 0
