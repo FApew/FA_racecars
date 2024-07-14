@@ -28,10 +28,10 @@ let pi = Math.PI, userID = 0, worldBodies, bodies = new Map(), btn = {w: 0, a: 0
 if (WebGL.isWebGLAvailable()) {
     //Camera
     const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000)
-    camera.position.set(0, 10, 6)
+    camera.position.set(0, 70, 7)
     camera.near = 5
     camera.far = 500
-    camera.rotation.x = -pi/4
+    camera.rotation.x = -3*pi/8
     camera.updateProjectionMatrix() 
 
     //Renderer
@@ -98,6 +98,12 @@ if (WebGL.isWebGLAvailable()) {
                 break
             }
 
+            case "r":
+            case "R": {
+                btn.r = 1
+                break
+            }
+
             case "Shift": {
                 btn.shift = 1
                 break
@@ -134,6 +140,12 @@ if (WebGL.isWebGLAvailable()) {
             case "D":
             case "ArrowRight": {
                 btn.d = 0
+                break
+            }
+
+            case "r":
+            case "R": {
+                btn.r = 0
                 break
             }
 
@@ -244,10 +256,6 @@ if (WebGL.isWebGLAvailable()) {
         let dt = clock.getDelta()
 
         bodies.forEach((body) => {
-            if (body.ID == userID) {
-                
-                camera.position.lerp(new THREE.Vector3(body.tPos.x, body.tPos.y+10, body.tPos.z+6), dt * 10)
-            }
 
             body.position.lerp(body.tPos, dt * 10)
             body.quaternion.slerp(body.tQuat, dt * 10)

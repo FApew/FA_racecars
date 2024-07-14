@@ -63,6 +63,7 @@ io.on("connection", socket => {
             players[idx].A = btn.a ? 1 : 0
             players[idx].S = btn.s ? 1 : 0
             players[idx].D = btn.d ? 1 : 0
+            players[idx].R = btn.r ? 1 : 0
             players[idx].SHIFT = btn.shift ? 1 : 0
         }
     })
@@ -77,13 +78,13 @@ const world = new CANNON.World({
 })
 let pi = Math.PI, users = [], players = []
 
-const speed = 800, steer = pi/4, damp = .8, friction = .5
+const speed = 300, steer = pi/20, damp = .8, friction = 10, maxForce = 100
 
 //Physic plane
 const cPlane = new CANNON.Body({
     type: CANNON.Body.STATIC,
     shape: new CANNON.Plane(),
-    material: new CANNON.Material({friction: 1})
+    material: new CANNON.Material({friction: 20, restitution: 0})
 })
 cPlane.quaternion.setFromEuler(-Math.PI / 2, 0, 0)
 world.addBody(cPlane)
@@ -94,10 +95,10 @@ function playerhandler(b, id) {
     if (b) {
         let chassis = new CANNON.Body({
             mass: 740,
-            position: new CANNON.Vec3(0,3,0),
+            position: new CANNON.Vec3(0,0.05,0),
             rotation: new CANNON.Quaternion(),
         })
-        chassis.addShape(new CANNON.Box(new CANNON.Vec3(1, .425, 2.815)), new CANNON.Vec3(0, .5, 0))
+        chassis.addShape(new CANNON.Box(new CANNON.Vec3(1, .425, 2.815)), new CANNON.Vec3(0, 10, 0))
 
         let player = new CANNON.RigidVehicle({
             chassisBody: chassis
@@ -162,6 +163,24 @@ function playerhandler(b, id) {
             axis: new CANNON.Vec3(1,0,0),
             direction: new CANNON.Vec3(0,-1,0),
         })
+
+        const consLB = new CANNON.HingeConstraint(chassis, whl1, {
+            pivotA: new CANNON.Vec3(-.8, -.115, -2.015),
+            axisA: new CANNON.Vec3(1, 0, 0),
+            maxForce: maxForce
+        })
+        consLB.enableMotor()
+        world.addConstraint(consLB)
+        player.consLB = consLB
+    
+        const consRB = new CANNON.HingeConstraint(chassis, whl2, {
+            pivotA: new CANNON.Vec3(.8, -.115, -2.015),
+            axisA: new CANNON.Vec3(1, 0, 0),
+            maxForce: maxForce
+        })
+        consRB.enableMotor()
+        world.addConstraint(consRB)
+        player.consRB = consRB
         
         player.chassisBody.ID = id
         player.chassisBody.COLOR = Math.random()
@@ -169,6 +188,7 @@ function playerhandler(b, id) {
         player.A = 0
         player.S = 0
         player.D = 0
+        player.R = 0
         players[users.indexOf(id)] = player
         player.addToWorld(world)
         console.log(id, " added")
@@ -183,26 +203,47 @@ function playerhandler(b, id) {
 function update() {
 
     players.forEach((player) => {
-        player.setWheelForce(0, 2)
-        player.setWheelForce(0, 3)
+        player.consLB.disableMotor()
+        player.consRB.disableMotor()
         player.setSteeringValue(0, 0)
         player.setSteeringValue(0, 1)
         if (player.W) {
-            player.setWheelForce(-speed, 2)
-            player.setWheelForce(-speed, 3)
+            player.consLB.enableMotor()
+            player.consRB.enableMotor()
+            player.consLB.setMotorSpeed(speed)
+            player.consRB.setMotorSpeed(speed)
         }
         if (player.A) {
             player.setSteeringValue(steer, 0)
             player.setSteeringValue(steer, 1)
         }
         if (player.S) {
-            player.setWheelForce(speed, 2)
-            player.setWheelForce(speed, 3)
+            player.consLB.enableMotor()
+            player.consRB.enableMotor()
+            player.consLB.setMotorSpeed(-speed)
+            player.consRB.setMotorSpeed(-speed)
         }
         if (player.D) {
             player.setSteeringValue(-steer, 0)
             player.setSteeringValue(-steer, 1)
         }
+        if (player.R) {
+            player.chassisBody.position.set(player.chassisBody.position.x, 10, player.chassisBody.position.z)
+            const currentEuler = new CANNON.Vec3();
+            player.chassisBody.quaternion.toEuler(currentEuler);
+            player.chassisBody.quaternion.setFromEuler(0, currentEuler.y, 0);
+            player.chassisBody.velocity = new CANNON.Vec3(0, 0, 0)
+        }
+
+        const dir1 = new CANNON.Vec3(0, 0, 1.585)
+        const dir2 = new CANNON.Vec3(0, 0, -2.015)
+
+        player.chassisBody.vectorToWorldFrame(dir1, dir1)
+        player.chassisBody.vectorToWorldFrame(dir2, dir2)
+
+        let downforce = -Math.min(5000 * (player.chassisBody.velocity.length() + 1), 100000);
+        player.chassisBody.applyForce(new CANNON.Vec3(0, downforce, 0), dir1);
+        player.chassisBody.applyForce(new CANNON.Vec3(0, downforce, 0), dir2);
     })
 
     world.step(1/60)
